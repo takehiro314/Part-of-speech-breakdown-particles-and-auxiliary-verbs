@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>和歌 品詞分解・修辞法 学習アプリ</title>
+  <link rel="icon" href="assets/waka_learning_icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="waka_learning_app.webmanifest">
+  <meta name="theme-color" content="#245f91">
+  <style>
+    :root {
+      --ink: #202124;
+      --muted: #65707a;
+      --line: #d7dde4;
+      --paper: #fffdf8;
+      --bg: #f6f3ec;
+      --blue: #245f91;
+      --blue-weak: #e7f0f8;
+      --red: #a7463d;
+      --red-weak: #f8ebe7;
+      --green: #28745d;
+      --green-weak: #e6f3ee;
+      --gold: #9a6a1e;
+      --gold-weak: #f7edda;
+      --shadow: 0 18px 50px rgba(43, 48, 54, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(36, 95, 145, 0.13), transparent 28rem),
+        linear-gradient(135deg, rgba(154, 106, 30, 0.08) 0 25%, transparent 25% 50%, rgba(40, 116, 93, 0.07) 50% 75%, transparent 75%),
+        var(--bg);
+      background-size: auto, 42px 42px, auto;
+    }
+
+    button,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 44px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--paper);
+      color: var(--blue);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      box-shadow: 0 8px 22px rgba(32, 33, 36, 0.08);
+      flex: 0 0 auto;
+    }
+
+    .brand-mark img {
+      width: 34px;
+      height: 34px;
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .ghost-btn,
+    .primary-btn,
+    .choice-btn {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      min-height: 44px;
+      padding: 10px 14px;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .ghost-btn:hover,
+    .primary-btn:hover,
+    .choice-btn:hover {
+      transform: translateY(-1px);
+      border-color: #aeb8c2;
+    }
+
+    .primary-btn {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .home-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .mode-card,
+    .panel,
+    .question-card,
+    .result-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, 0.96);
+      box-shadow: var(--shadow);
+    }
+
+    .mode-card {
+      min-height: 280px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .mode-card::after {
+      content: "";
+      position: absolute;
+      inset: auto 20px 20px auto;
+      width: 130px;
+      height: 130px;
+      border: 1px solid rgba(32, 33, 36, 0.08);
+      background:
+        linear-gradient(90deg, rgba(36, 95, 145, 0.09) 1px, transparent 1px),
+        linear-gradient(rgba(167, 70, 61, 0.09) 1px, transparent 1px);
+      background-size: 18px 18px;
+      transform: rotate(-5deg);
+      opacity: 0.8;
+    }
+
+    .mode-card h2,
+    .panel h2 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .mode-card p,
+    .panel p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .mode-card .primary-btn {
+      align-self: flex-start;
+      min-width: 150px;
+      margin-top: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mode-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #fff;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .mode-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .score-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 12px;
+    }
+
+    .score-value {
+      display: block;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .mode-filter {
+      margin-top: 16px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .result-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .result-row {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+      line-height: 1.7;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 14px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      min-height: 40px;
+      padding: 8px 12px;
+      color: var(--muted);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--green);
+      border-color: var(--green);
+      font-weight: 700;
+    }
+
+    .question-card {
+      padding: clamp(18px, 3vw, 26px);
+    }
+
+    .question-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .question-title {
+      margin: 0;
+      font-size: clamp(20px, 2.4vw, 28px);
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    .waka {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, rgba(154, 106, 30, 0.06) 1px, transparent 1px),
+        #fff;
+      background-size: 18px 100%;
+      padding: clamp(16px, 2.6vw, 24px);
+      margin: 16px 0;
+    }
+
+    .waka-text {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      align-items: center;
+      font-size: clamp(24px, 4vw, 40px);
+      line-height: 1.7;
+      font-family: "Yu Mincho", "Hiragino Mincho ProN", "Times New Roman", serif;
+      letter-spacing: 0;
+    }
+
+    .waka-line {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .marked {
+      display: inline-block;
+      border: 2px solid var(--red);
+      border-radius: 6px;
+      background: var(--red-weak);
+      padding: 0 6px;
+      line-height: 1.35;
+    }
+
+    .reading {
+      margin-top: 10px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .answer-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 18px;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .choice-btn {
+      text-align: left;
+      line-height: 1.6;
+      width: 100%;
+    }
+
+    .choice-btn.selected {
+      border-color: var(--blue);
+      background: var(--blue-weak);
+      font-weight: 700;
+    }
+
+    .choice-btn.correct {
+      border-color: var(--green);
+      background: var(--green-weak);
+    }
+
+    .choice-btn.wrong {
+      border-color: var(--red);
+      background: var(--red-weak);
+    }
+
+    .result-card {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      box-shadow: none;
+    }
+
+    .result-card.show {
+      display: block;
+    }
+
+    .result-card.correct {
+      border-color: rgba(40, 116, 93, 0.45);
+      background: var(--green-weak);
+    }
+
+    .result-card.wrong {
+      border-color: rgba(167, 70, 61, 0.45);
+      background: var(--red-weak);
+    }
+
+    .result-title {
+      margin: 0 0 8px;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .explain {
+      margin: 0;
+      line-height: 1.8;
+    }
+
+    .compact-list {
+      margin: 10px 0 0;
+      padding-left: 1.2em;
+      line-height: 1.8;
+    }
+
+    .rhetoric-target {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(154, 106, 30, 0.45);
+      border-radius: var(--radius);
+      background: var(--gold-weak);
+      color: #4b3211;
+      padding: 8px 12px;
+      font-size: clamp(20px, 3vw, 32px);
+      font-family: "Yu Mincho", "Hiragino Mincho ProN", serif;
+      line-height: 1.5;
+    }
+
+    .poem-option {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .option-number {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #eef2f5;
+      color: var(--muted);
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 860px) {
+      .home-layout,
+      .mode-shell,
+      .answer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100% - 20px, 1120px);
+        padding-top: 18px;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+      }
+
+      .mode-card {
+        min-height: 230px;
+        padding: 18px;
+      }
+
+      .question-head {
+        flex-direction: column;
+      }
+
+      .waka-text {
+        gap: 5px 7px;
+      }
+
+      .ghost-btn,
+      .primary-btn,
+      .choice-btn {
+        width: 100%;
+      }
+
+      .actions {
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"><img src="assets/waka_learning_icon.svg" alt=""></div>
+        <div>
+          <h1>和歌 品詞分解・修辞法</h1>
+          <p class="subtitle">11首の和歌からランダム出題</p>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:0">
+        <button class="ghost-btn" id="resultBtn" type="button">結果を見る</button>
+        <button class="ghost-btn" id="homeBtn" type="button">最初の画面へ</button>
+      </div>
+    </div>
+
+    <section class="screen active" id="homeScreen">
+      <div class="home-layout">
+        <article class="mode-card">
+          <div>
+            <h2>修辞法を学ぶ</h2>
+            <p>掛詞、枕詞、序詞、折句を見分ける。</p>
+            <div class="mode-meta">
+              <span class="pill">単問</span>
+              <span class="pill">複数和歌選択</span>
+              <span class="pill">一意解答</span>
+            </div>
+          </div>
+          <button class="primary-btn" type="button" data-mode="rhetoric">開始</button>
+        </article>
+
+        <article class="mode-card">
+          <div>
+            <h2>品詞分解を学ぶ</h2>
+            <p>マークされた助詞・助動詞の品詞、意味、活用を段階的に答える。</p>
+            <div class="mode-meta">
+              <span class="pill">助詞</span>
+              <span class="pill">助動詞</span>
+              <span class="pill">段階式</span>
+            </div>
+          </div>
+          <button class="primary-btn" type="button" data-mode="grammar">開始</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="screen" id="grammarScreen">
+      <div class="mode-shell">
+        <section class="question-card">
+          <div class="question-head">
+            <h2 class="question-title">品詞分解</h2>
+            <span class="pill" id="grammarKindPill">出題中</span>
+          </div>
+          <div id="grammarQuestion"></div>
+          <div class="answer-grid" id="grammarAnswers"></div>
+          <div class="actions">
+            <button class="primary-btn" id="grammarCheckBtn" type="button">品詞を確定</button>
+            <button class="ghost-btn" id="grammarNextBtn" type="button">次の問題</button>
+          </div>
+          <div class="result-card" id="grammarResult"></div>
+        </section>
+
+        <aside class="panel">
+          <h2>成績</h2>
+          <p>この画面を閉じるまでの記録です。</p>
+          <div class="mode-filter">
+            <label for="grammarQuestionMode">出題方式</label>
+            <select id="grammarQuestionMode">
+              <option value="random">無作為に出す</option>
+              <option value="unanswered">まだ答えられていない問題のみ</option>
+              <option value="missed">間違えた問題のみ</option>
+            </select>
+          </div>
+          <div class="score-grid">
+            <div class="score-item">
+              <span class="score-value" id="grammarCorrect">0</span>
+              <span class="score-label">正解</span>
+            </div>
+            <div class="score-item">
+              <span class="score-value" id="grammarTotal">0</span>
+              <span class="score-label">解答</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="rhetoricScreen">
+      <div class="mode-shell">
+        <section class="question-card">
+          <div class="tabs">
+            <button class="tab-btn active" id="singleRhetoricTab" type="button">句から答える</button>
+            <button class="tab-btn" id="multiRhetoricTab" type="button">和歌から選ぶ</button>
+          </div>
+          <div class="question-head">
+            <h2 class="question-title" id="rhetoricTitle">修辞法</h2>
+            <span class="pill" id="rhetoricKindPill">出題中</span>
+          </div>
+          <div id="rhetoricQuestion"></div>
+          <div class="choice-list" id="rhetoricChoices"></div>
+          <div class="actions">
+            <button class="primary-btn" id="rhetoricCheckBtn" type="button">判定</button>
+            <button class="ghost-btn" id="rhetoricNextBtn" type="button">次の問題</button>
+          </div>
+          <div class="result-card" id="rhetoricResult"></div>
+        </section>
+
+        <aside class="panel">
+          <h2>成績</h2>
+          <p>候補は掛詞、枕詞、序詞、折句です。</p>
+          <div class="mode-filter">
+            <label for="rhetoricQuestionMode">出題方式</label>
+            <select id="rhetoricQuestionMode">
+              <option value="random">無作為に出す</option>
+              <option value="unanswered">まだ答えられていない問題のみ</option>
+              <option value="missed">間違えた問題のみ</option>
+            </select>
+          </div>
+          <div class="score-grid">
+            <div class="score-item">
+              <span class="score-value" id="rhetoricCorrect">0</span>
+              <span class="score-label">正解</span>
+            </div>
+            <div class="score-item">
+              <span class="score-value" id="rhetoricTotal">0</span>
+              <span class="score-label">解答</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen">
+      <section class="question-card">
+        <div class="question-head">
+          <h2 class="question-title">リザルト</h2>
+          <span class="pill">学習記録</span>
+        </div>
+        <div class="score-grid">
+          <div class="score-item">
+            <span class="score-value" id="resultGrammarScore">0/0</span>
+            <span class="score-label">品詞分解</span>
+          </div>
+          <div class="score-item">
+            <span class="score-value" id="resultRhetoricScore">0/0</span>
+            <span class="score-label">修辞法</span>
+          </div>
+        </div>
+        <div class="result-list" id="resultDetails"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const poems = [
+      {
+        id: 1,
+        text: "風吹けば 沖つ白波 たつた山 夜半にや君が ひとり越ゆらむ",
+        reading: "かぜふけば おきつしらなみ たつたやま よはにやきみが ひとりこゆらむ",
+        rhetoric: ["序詞", "掛詞"],
+        tokens: [
+          { surface: "吹け", pos: "動詞", conjugation: "カ行四段活用", form: "已然形" },
+          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接確定条件", connection: "已然形に接続", meaning: "風が吹くと" },
+          { surface: "つ", pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "沖の白波", skip: true },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "時", connection: "体言に接続", meaning: "夜中に" },
+          { surface: "や", pos: "助詞", particleType: "係助詞", usage: "疑問", connection: "体言・連用語などに接続", meaning: "夜中に...だろうか" },
+          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "君が越える" },
+          { surface: "越ゆ", pos: "動詞", conjugation: "ヤ行下二段活用", form: "終止形" },
+          { surface: "らむ", pos: "助動詞", auxMeaning: "現在推量", form: "連体形" }
+        ]
+      },
+      {
+        id: 2,
+        text: "あしひきの 山鳥の尾の しだり尾の 長々し夜を ひとりかも寝む",
+        reading: "あしひきの やまどりのをの しだりをの ながながしよを ひとりかもねむ",
+        rhetoric: ["枕詞", "序詞"],
+        tokens: [
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "山鳥の尾" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "同格寄りの連体修飾", connection: "体言に接続", meaning: "尾である、垂れた尾" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "比喩的連体修飾", connection: "体言に接続", meaning: "しだり尾のように長い夜" },
+          { surface: "を", pos: "助詞", particleType: "格助詞", usage: "経過する時間", connection: "体言に接続", meaning: "長い夜を過ごす" },
+          { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問・詠嘆", connection: "副詞的語に接続", meaning: "ひとり寝るのだろうか" },
+          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "詠嘆・強意", connection: "係助詞かに接続", meaning: "かもで自問・詠嘆" },
+          { surface: "寝", pos: "動詞", conjugation: "ナ行下二段活用", form: "未然形" },
+          { surface: "む", pos: "助動詞", auxMeaning: "推量", form: "連体形" }
+        ]
+      },
+      {
+        id: 3,
+        text: "あかねさす 紫野行き 標野行き 野守は見ずや 君が袖振る",
+        reading: "あかねさす むらさきのゆき しめのゆき のもりはみずや きみがそでふる",
+        rhetoric: ["枕詞"],
+        tokens: [
+          { surface: "行き", occurrence: 1, pos: "動詞", conjugation: "カ行四段活用", form: "連用形" },
+          { surface: "行き", occurrence: 2, pos: "動詞", conjugation: "カ行四段活用", form: "連用形" },
+          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "題示", connection: "体言に接続", meaning: "野守は" },
+          { surface: "見", pos: "動詞", conjugation: "マ行上一段活用", form: "未然形" },
+          { surface: "ず", pos: "助動詞", auxMeaning: "打消", form: "終止形" },
+          { surface: "や", pos: "助詞", particleType: "係助詞", usage: "反語", connection: "終止形に接続", meaning: "見ないだろうか、いや見るだろう", skip: true },
+          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "君が袖を振る" },
+          { surface: "振る", pos: "動詞", conjugation: "ラ行四段活用", form: "連体形" }
+        ]
+      },
+      {
+        id: 4,
+        text: "山深み 春とも知らぬ 松の戸に 絶え絶えかかる 雪の玉水",
+        reading: "やまふかみ はるともしらぬ まつのとに たえだえかかる ゆきのたまみづ",
+        rhetoric: [],
+        tokens: [
+          { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用・内容", connection: "体言に接続", meaning: "春であると" },
+          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強意・添加", connection: "格助詞とに接続", meaning: "春だとさえ" },
+          { surface: "知ら", pos: "動詞", conjugation: "ラ行四段活用", form: "未然形" },
+          { surface: "ぬ", pos: "助動詞", auxMeaning: "打消", form: "連体形" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "松の戸" },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・着点", connection: "体言に接続", meaning: "戸にかかる" },
+          { surface: "かかる", pos: "動詞", conjugation: "ラ行四段活用", form: "連体形" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "雪解けの玉水" }
+        ]
+      },
+      {
+        id: 5,
+        text: "世の中に たえて桜の なかりせば 春の心は のどけからまし",
+        reading: "よのなかに たえてさくらの なかりせば はるのこころは のどけからまし",
+        rhetoric: [],
+        tokens: [
+          { surface: "に", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "場所・範囲", connection: "体言に接続", meaning: "この世に" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "桜がない" },
+          { surface: "なかり", pos: "形容詞", conjugation: "ク活用", form: "連用形" },
+          { surface: "せ", pos: "助動詞", auxMeaning: "過去", form: "未然形" },
+          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "仮定条件", connection: "未然形に接続", meaning: "もしなかったなら" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "春を過ごす心" },
+          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "題示", connection: "体言に接続", meaning: "心は" },
+          { surface: "のどけから", pos: "形容詞", conjugation: "ク活用", form: "未然形" },
+          { surface: "まし", pos: "助動詞", auxMeaning: "反実仮想", form: "終止形" }
+        ]
+      },
+      {
+        id: 6,
+        text: "ひさかたの 光のどけき 春の日に しづ心なく 花の散るらむ",
+        reading: "ひさかたの ひかりのどけき はるのひに しづこころなく はなのちるらむ",
+        rhetoric: ["枕詞"],
+        tokens: [
+          { surface: "のどけき", pos: "形容詞", conjugation: "ク活用", form: "連体形" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "春の日" },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "時", connection: "体言に接続", meaning: "春の日に" },
+          { surface: "なく", pos: "形容詞", conjugation: "ク活用", form: "連用形" },
+          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "花が散る" },
+          { surface: "散る", pos: "動詞", conjugation: "ラ行四段活用", form: "終止形" },
+          { surface: "らむ", pos: "助動詞", auxMeaning: "現在の原因推量", form: "連体形" }
+        ]
+      },
+      {
+        id: 7,
+        text: "みかの原 わきて流るる いづみ川 いつ見きとてか 恋しかるらむ",
+        reading: "みかのはら わきてながるる いづみがは いつみきとてか こひしかるらむ",
+        rhetoric: ["掛詞", "序詞"],
+        tokens: [
+          { surface: "わき", pos: "動詞", conjugation: "カ行四段活用", form: "連用形" },
+          { surface: "て", occurrence: 1, pos: "助詞", particleType: "接続助詞", usage: "接続・継起", connection: "連用形に接続", meaning: "湧いて、分けて" },
+          { surface: "流るる", pos: "動詞", conjugation: "ラ行下二段活用", form: "連体形" },
+          { surface: "見", pos: "動詞", conjugation: "マ行上一段活用", form: "連用形" },
+          { surface: "き", occurrence: 2, pos: "助動詞", auxMeaning: "過去", form: "終止形" },
+          { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用・内容", connection: "終止形に接続", meaning: "いつ見たということで" },
+          { surface: "て", occurrence: 2, pos: "助詞", particleType: "接続助詞", usage: "理由・条件", connection: "格助詞とに接続", meaning: "見たからといって" },
+          { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問", connection: "接続助詞てに接続", meaning: "どうして恋しいのだろうか" },
+          { surface: "恋しかる", pos: "形容詞", conjugation: "シク活用", form: "連体形" },
+          { surface: "らむ", pos: "助動詞", auxMeaning: "現在推量", form: "連体形" }
+        ]
+      },
+      {
+        id: 8,
+        text: "花の色は 移りにけりな いたづらに わが身世にふる ながめせしまに",
+        reading: "はなのいろは うつりにけりな いたづらに わがみよにふる ながめせしまに",
+        rhetoric: ["掛詞"],
+        tokens: [
+          { surface: "の", pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "花の色" },
+          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "題示", connection: "体言に接続", meaning: "花の色は" },
+          { surface: "移り", pos: "動詞", conjugation: "ラ行四段活用", form: "連用形" },
+          { surface: "に", occurrence: 1, pos: "助動詞", auxMeaning: "完了", form: "連用形" },
+          { surface: "けり", pos: "助動詞", auxMeaning: "詠嘆", form: "終止形" },
+          { surface: "いたづらに", pos: "形容動詞", conjugation: "ナリ活用", form: "連用形" },
+          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "連体修飾・所属", connection: "代名詞に接続", meaning: "私の身" },
+          { surface: "に", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "場所・場面", connection: "体言に接続", meaning: "世の中で" },
+          { surface: "ふる", pos: "動詞", conjugation: "ハ行下二段活用またはラ行四段活用", form: "連体形", skip: true },
+          { surface: "せ", pos: "動詞", conjugation: "サ行変格活用", form: "未然形" },
+          { surface: "し", pos: "助動詞", auxMeaning: "過去", form: "連体形" },
+          { surface: "に", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "時", connection: "体言に接続", meaning: "その間に" }
+        ]
+      },
+      {
+        id: 9,
+        text: "唐衣 着つつなれにし つましあれば はるばる来ぬる 旅をしぞ思ふ",
+        reading: "からころも きつつなれにし つましあれば はるばるきぬる たびをしぞおもふ",
+        rhetoric: ["掛詞", "枕詞", "序詞", "折句"],
+        tokens: [
+          { surface: "着", pos: "動詞", conjugation: "カ行上一段活用", form: "連用形" },
+          { surface: "つつ", pos: "助詞", particleType: "接続助詞", usage: "反復・継続", connection: "連用形に接続", meaning: "何度も着て" },
+          { surface: "なれ", pos: "動詞", conjugation: "ラ行下二段活用", form: "連用形" },
+          { surface: "に", pos: "助動詞", auxMeaning: "完了", form: "連用形" },
+          { surface: "し", occurrence: 1, pos: "助動詞", auxMeaning: "過去", form: "連体形" },
+          { surface: "し", occurrence: 2, pos: "助詞", particleType: "副助詞", usage: "強意", connection: "体言に接続", meaning: "妻がまさにいるので" },
+          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接確定条件", connection: "已然形に接続", meaning: "妻がいるので" },
+          { surface: "来", pos: "動詞", conjugation: "カ行変格活用", form: "連用形" },
+          { surface: "ぬる", pos: "助動詞", auxMeaning: "完了", form: "連体形" },
+          { surface: "を", pos: "助詞", particleType: "格助詞", usage: "動作・感情の対象", connection: "体言に接続", meaning: "旅を思う" },
+          { surface: "し", occurrence: 3, pos: "助詞", particleType: "副助詞", usage: "強意", connection: "格助詞をに接続", meaning: "旅をこそ" },
+          { surface: "ぞ", pos: "助詞", particleType: "係助詞", usage: "強意", connection: "副助詞しに接続", meaning: "思ふを連体形にする係り結び" },
+          { surface: "思ふ", pos: "動詞", conjugation: "ハ行四段活用", form: "連体形" }
+        ]
+      },
+      {
+        id: 10,
+        text: "春の夜の 夢の浮橋 とだえして 峰に別るる 横雲の空",
+        reading: "はるのよの ゆめのうきはし とだえして みねにわかるる よこぐものそら",
+        rhetoric: [],
+        tokens: [
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "春の夜" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "夜の夢" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "比喩的連体修飾", connection: "体言に接続", meaning: "夢のようにはかない浮橋" },
+          { surface: "し", pos: "動詞", conjugation: "サ行変格活用", form: "連用形" },
+          { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "接続・継起", connection: "連用形に接続", meaning: "途絶えて" },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・接点", connection: "体言に接続", meaning: "峰のあたりで" },
+          { surface: "別るる", pos: "動詞", conjugation: "ラ行下二段活用", form: "連体形" },
+          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "横雲のある空" }
+        ]
+      },
+      {
+        id: 11,
+        text: "駒とめて 袖うちはらふ かげもなし 佐野のわたりの 雪の夕暮",
+        reading: "こまとめて そでうちはらふ かげもなし さののわたりの ゆきのゆふぐれ",
+        rhetoric: [],
+        tokens: [
+          { surface: "とめ", pos: "動詞", conjugation: "マ行下二段活用", form: "連用形" },
+          { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "接続・継起", connection: "連用形に接続", meaning: "馬を止めて" },
+          { surface: "うちはらふ", pos: "動詞", conjugation: "ハ行四段活用", form: "連体形" },
+          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強意・添加", connection: "体言に接続", meaning: "物陰さえもない" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾・所在", connection: "体言に接続", meaning: "佐野の渡し場" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾・場所", connection: "体言に接続", meaning: "渡し場の雪" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾・状態", connection: "体言に接続", meaning: "雪の夕暮れ" }
+        ]
+      }
+    ];
+
+    const rhetoricPrompts = [
+      { poemId: 1, phrase: "風吹けば沖つ白波", answer: "序詞", note: "「たつ」を導く。" },
+      { poemId: 1, phrase: "たつ", answer: "掛詞", note: "波が立つ、竜田山の「たつ」。" },
+      { poemId: 2, phrase: "あしひきの", answer: "枕詞", note: "「山」にかかる。" },
+      { poemId: 2, phrase: "あしひきの山鳥の尾のしだり尾の", answer: "序詞", note: "「長々し夜」を導く。" },
+      { poemId: 3, phrase: "あかねさす", answer: "枕詞", note: "「紫」にかかる。" },
+      { poemId: 6, phrase: "ひさかたの", answer: "枕詞", note: "「光」にかかる。" },
+      { poemId: 7, phrase: "わきて", answer: "掛詞", note: "湧きて、分きて。" },
+      { poemId: 7, phrase: "みかの原わきて流るるいづみ川", answer: "序詞", note: "「いつ見」を導く。" },
+      { poemId: 8, phrase: "ふる", answer: "掛詞", note: "経る、降る。" },
+      { poemId: 8, phrase: "ながめ", answer: "掛詞", note: "眺め、長雨。" },
+      { poemId: 9, phrase: "唐衣", answer: "枕詞", note: "「着」にかかる。" },
+      { poemId: 9, phrase: "唐衣着つつ", answer: "序詞", note: "「なれ」を導く。" },
+      { poemId: 9, phrase: "つま", answer: "掛詞", note: "衣の褄、都の妻。" },
+      { poemId: 9, phrase: "か・き・つ・は・た", answer: "折句", note: "各句頭で「かきつはた」。" }
+    ];
+
+    const options = {
+      pos: ["助詞", "助動詞"],
+      conjugation: [
+        "カ行四段活用", "ラ行四段活用", "ハ行四段活用", "マ行四段活用",
+        "ヤ行下二段活用", "ナ行下二段活用", "ラ行下二段活用", "マ行下二段活用",
+        "カ行上一段活用", "マ行上一段活用", "カ行変格活用", "サ行変格活用",
+        "ク活用", "シク活用", "ナリ活用", "ハ行下二段活用またはラ行四段活用"
+      ],
+      form: ["未然形", "連用形", "終止形", "連体形", "已然形", "命令形"],
+      particleType: ["格助詞", "係助詞", "接続助詞", "副助詞", "終助詞"],
+      auxMeaning: ["打消", "完了", "過去", "詠嘆", "推量", "現在推量", "現在の原因推量", "反実仮想"],
+      usage: [
+        "主格", "連体修飾", "同格寄りの連体修飾", "比喩的連体修飾",
+        "時", "場所・範囲", "場所・着点", "場所・接点", "連体修飾・所属",
+        "連体修飾・所在", "連体修飾・場所", "連体修飾・状態",
+        "動作・感情の対象", "経過する時間", "引用・内容",
+        "題示", "疑問", "反語", "疑問・詠嘆", "詠嘆・強意",
+        "強意", "強意・添加", "順接確定条件", "仮定条件", "接続・継起",
+        "理由・条件", "反復・継続"
+      ],
+      connection: [
+        "体言に接続", "代名詞に接続", "終止形に接続", "未然形に接続",
+        "連用形に接続", "已然形に接続", "体言・連用語などに接続",
+        "副詞的語に接続", "係助詞かに接続", "格助詞とに接続",
+        "接続助詞てに接続", "格助詞をに接続", "副助詞しに接続"
+      ],
+      meaning: []
+    };
+
+    const state = {
+      grammar: { current: null, checked: false, phase: "pos", correct: 0, total: 0, questionMode: "random", queue: [], records: {} },
+      rhetoric: { current: null, selected: null, checked: false, correct: 0, total: 0, mode: "single", questionMode: "random", queue: [], records: {} }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const randomItem = (items) => items[Math.floor(Math.random() * items.length)];
+    const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
+      $(id).classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function poemById(id) {
+      return poems.find((poem) => poem.id === id);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function renderPoem(poem, targetToken) {
+      const parts = poem.text.split(" ");
+      let seen = 0;
+      const lines = parts.map((part) => {
+        let html = escapeHtml(part);
+        if (targetToken) {
+          html = html.replace(new RegExp(escapeRegExp(targetToken.surface)), (match) => {
+            seen += 1;
+            const targetOccurrence = targetToken.occurrence || 1;
+            if (seen === targetOccurrence) {
+              return `<span class="marked">${escapeHtml(match)}</span>`;
+            }
+            return escapeHtml(match);
+          });
+        }
+        return `<span class="waka-line">${html}</span>`;
+      }).join("");
+
+      return `
+        <div class="waka">
+          <div class="waka-text">${lines}</div>
+          <div class="reading">${escapeHtml(poem.reading)}</div>
+        </div>
+      `;
+    }
+
+    function escapeRegExp(value) {
+      return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function updateScores() {
+      $("grammarCorrect").textContent = state.grammar.correct;
+      $("grammarTotal").textContent = state.grammar.total;
+      $("rhetoricCorrect").textContent = state.rhetoric.correct;
+      $("rhetoricTotal").textContent = state.rhetoric.total;
+    }
+
+    function renderResultScreen() {
+      $("resultGrammarScore").textContent = `${state.grammar.correct}/${state.grammar.total}`;
+      $("resultRhetoricScore").textContent = `${state.rhetoric.correct}/${state.rhetoric.total}`;
+
+      const grammarMissed = Object.values(state.grammar.records).filter((record) => record.lastCorrect === false);
+      const rhetoricMissed = Object.values(state.rhetoric.records).filter((record) => record.lastCorrect === false);
+      const grammarRows = grammarMissed.length
+        ? grammarMissed.map((item) => `
+          <div class="result-row">
+            <strong>${escapeHtml(item.label)}</strong><br>
+            ${item.details ? item.details.map((detail) => `${escapeHtml(detail.label)}: ${escapeHtml(detail.value)}`).join("<br>") : ""}
+          </div>
+        `).join("")
+        : `<div class="result-row">なし</div>`;
+      const rhetoricRows = rhetoricMissed.length
+        ? rhetoricMissed.map((item) => `<div class="result-row">${escapeHtml(item.label)}</div>`).join("")
+        : `<div class="result-row">なし</div>`;
+      const missedHtml = [
+        `<div><h3>品詞分解で直近間違えた問題</h3>${grammarRows}</div>`,
+        `<div><h3>修辞法で直近間違えた問題</h3>${rhetoricRows}</div>`
+      ].join("");
+      $("resultDetails").innerHTML = missedHtml;
+    }
+
+    function grammarAnswerDetails(token) {
+      if (token.pos === "助詞") {
+        return [
+          { label: "品詞", value: token.pos },
+          { label: "助詞の種類", value: token.particleType },
+          { label: "意味", value: token.usage }
+        ];
+      }
+      return [
+        { label: "品詞", value: token.pos },
+        { label: "活用形", value: token.form },
+        { label: "意味", value: token.auxMeaning }
+      ];
+    }
+
+    function makeSelect(id, label, values) {
+      const uniqueValues = [...new Set(values)].filter(Boolean);
+      return `
+        <div class="field">
+          <label for="${id}">${label}</label>
+          <select id="${id}">
+            <option value="">選択</option>
+            ${uniqueValues.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}
+          </select>
+        </div>
+      `;
+    }
+
+    function grammarKey(item) {
+      const occurrence = item.token.occurrence || 1;
+      return `g:${item.poem.id}:${item.token.surface}:${occurrence}:${item.token.pos}`;
+    }
+
+    function singleRhetoricKey(prompt) {
+      return `rs:${prompt.poemId}:${prompt.phrase}:${prompt.answer}`;
+    }
+
+    function multiRhetoricKey(item) {
+      return `rm:${item.targetType}:${item.answerPoem.id}`;
+    }
+
+    function filterByQuestionMode(items, mode, records, keyFn) {
+      if (mode === "unanswered") {
+        return items.filter((item) => !records[keyFn(item)]);
+      }
+      if (mode === "missed") {
+        return items.filter((item) => records[keyFn(item)]?.lastCorrect === false);
+      }
+      return items;
+    }
+
+    function takeFromQueue(domain, items, keyFn) {
+      const mode = state[domain].questionMode;
+      while (true) {
+        if (!state[domain].queue.length) {
+          state[domain].queue = shuffle(filterByQuestionMode(items, mode, state[domain].records, keyFn));
+        }
+        const next = state[domain].queue.shift();
+        if (!next) return null;
+        if (filterByQuestionMode([next], mode, state[domain].records, keyFn).length) return next;
+      }
+    }
+
+    function recordQuestion(domain, key, passed, label, details = null) {
+      const existing = state[domain].records[key] || { attempts: 0, label };
+      existing.attempts += 1;
+      existing.label = label;
+      if (details) existing.details = details;
+      existing.lastCorrect = passed;
+      state[domain].records[key] = existing;
+    }
+
+    function resetQuestionQueue(domain) {
+      state[domain].queue = [];
+    }
+
+    function buildGrammarPool() {
+      return poems.flatMap((poem) => poem.tokens
+        .filter((token) => !token.skip && ["助詞", "助動詞"].includes(token.pos))
+        .map((token) => ({ poem, token })));
+    }
+
+    function nextGrammarQuestion() {
+      const current = takeFromQueue("grammar", buildGrammarPool(), grammarKey);
+      if (!current) {
+        state.grammar.current = null;
+        $("grammarKindPill").textContent = "該当なし";
+        $("grammarQuestion").innerHTML = "";
+        $("grammarAnswers").innerHTML = "";
+        $("grammarCheckBtn").disabled = true;
+        $("grammarNextBtn").disabled = true;
+        showResult("grammarResult", false, `
+          <p class="result-title">出題できる問題がありません</p>
+          <p class="explain">出題方式を「無作為に出す」に切り替えるか、別の問題を解いてから戻ってください。</p>
+        `);
+        return;
+      }
+      state.grammar.current = current;
+      state.grammar.checked = false;
+      state.grammar.phase = "pos";
+      $("grammarKindPill").textContent = `No.${current.poem.id}`;
+      $("grammarQuestion").innerHTML = `
+        ${renderPoem(current.poem, current.token)}
+        <p class="small">まず、マークされた語が助詞か助動詞かを答える。</p>
+      `;
+
+      $("grammarAnswers").innerHTML = makeSelect("answerPos", "品詞", options.pos);
+      $("grammarCheckBtn").textContent = "品詞を確定";
+      $("grammarCheckBtn").disabled = false;
+      $("grammarNextBtn").disabled = true;
+      hideResult("grammarResult");
+    }
+
+    function renderGrammarDetailFields(token) {
+      if (token.pos === "助詞") {
+        $("grammarAnswers").innerHTML = [
+          makeSelect("answerParticleType", "助詞の種類", options.particleType),
+          makeSelect("answerUsage", "意味", options.usage)
+        ].join("");
+      } else {
+        $("grammarAnswers").innerHTML = [
+          makeSelect("answerAuxMeaning", "助動詞の意味", options.auxMeaning),
+          makeSelect("answerForm", "活用形", options.form)
+        ].join("");
+      }
+      $("grammarCheckBtn").textContent = "判定";
+    }
+
+    function checkGrammarAnswer() {
+      if (state.grammar.checked || !state.grammar.current) return;
+      const token = state.grammar.current.token;
+
+      if (state.grammar.phase === "pos") {
+        const actualPos = $("answerPos")?.value || "";
+        if (actualPos === token.pos) {
+          state.grammar.phase = "detail";
+          renderGrammarDetailFields(token);
+          showResult("grammarResult", true, `
+          <p class="result-title">品詞は正解</p>
+            <p class="explain">次に、${token.pos === "助詞" ? "助詞の種類と意味" : "助動詞の意味と活用形"}を答える。</p>
+          `);
+          return;
+        }
+
+        state.grammar.checked = true;
+        state.grammar.total += 1;
+        recordQuestion("grammar", grammarKey(state.grammar.current), false, `No.${state.grammar.current.poem.id} ${token.surface}`, grammarAnswerDetails(token));
+        updateScores();
+        $("grammarCheckBtn").disabled = true;
+        $("grammarNextBtn").disabled = false;
+        showResult("grammarResult", false, `
+          <p class="result-title">確認</p>
+          <p class="explain">マーク語「${escapeHtml(token.surface)}」の品詞は ${escapeHtml(token.pos)}。</p>
+        `);
+        return;
+      }
+
+      const checks = token.pos === "助詞"
+        ? [
+          { label: "助詞の種類", expected: token.particleType, actual: $("answerParticleType")?.value || "" },
+          { label: "意味", expected: token.usage, actual: $("answerUsage")?.value || "" }
+        ]
+        : [
+          { label: "助動詞の意味", expected: token.auxMeaning, actual: $("answerAuxMeaning")?.value || "" },
+          { label: "活用形", expected: token.form, actual: $("answerForm")?.value || "" }
+        ];
+
+      const passed = checks.every((item) => item.expected === item.actual);
+      state.grammar.checked = true;
+      state.grammar.total += 1;
+      if (passed) state.grammar.correct += 1;
+      recordQuestion("grammar", grammarKey(state.grammar.current), passed, `No.${state.grammar.current.poem.id} ${token.surface}`, grammarAnswerDetails(token));
+      updateScores();
+      $("grammarCheckBtn").disabled = true;
+      $("grammarNextBtn").disabled = false;
+
+      const detail = checks.map((item) => `<li>${escapeHtml(item.label)}: ${escapeHtml(item.expected)}</li>`).join("");
+      showResult("grammarResult", passed, `
+        <p class="result-title">${passed ? "正解" : "確認"}</p>
+        <p class="explain">マーク語「${escapeHtml(token.surface)}」</p>
+        <ul class="compact-list"><li>品詞: ${escapeHtml(token.pos)}</li></ul>
+        <ul class="compact-list">${detail}</ul>
+      `);
+    }
+
+    function setRhetoricMode(mode) {
+      state.rhetoric.mode = mode;
+      resetQuestionQueue("rhetoric");
+      $("singleRhetoricTab").classList.toggle("active", mode === "single");
+      $("multiRhetoricTab").classList.toggle("active", mode === "multi");
+      nextRhetoricQuestion();
+    }
+
+    function nextRhetoricQuestion() {
+      state.rhetoric.selected = null;
+      state.rhetoric.checked = false;
+      $("rhetoricNextBtn").disabled = true;
+      hideResult("rhetoricResult");
+      if (state.rhetoric.mode === "single") {
+        nextSingleRhetoricQuestion();
+      } else {
+        nextMultiRhetoricQuestion();
+      }
+    }
+
+    function nextSingleRhetoricQuestion() {
+      const prompt = takeFromQueue("rhetoric", rhetoricPrompts, singleRhetoricKey);
+      if (!prompt) {
+        showNoRhetoricQuestion();
+        return;
+      }
+      const poem = poemById(prompt.poemId);
+      state.rhetoric.current = { type: "single", answer: prompt.answer, prompt, poem };
+      $("rhetoricCheckBtn").disabled = false;
+      $("rhetoricTitle").textContent = "修辞法";
+      $("rhetoricKindPill").textContent = `No.${poem.id}`;
+      $("rhetoricQuestion").innerHTML = `
+        <div class="rhetoric-target">${escapeHtml(prompt.phrase)}</div>
+        ${renderPoem(poem)}
+      `;
+      renderRhetoricChoices(["掛詞", "枕詞", "序詞", "折句"]);
+    }
+
+    function buildMultiRhetoricPool() {
+      const types = ["掛詞", "枕詞", "序詞", "折句"];
+      return types.flatMap((targetType) => poems
+        .filter((poem) => poem.rhetoric.includes(targetType))
+        .map((answerPoem) => ({ targetType, answerPoem }))
+        .filter((item) => poems.filter((poem) => !poem.rhetoric.includes(item.targetType)).length >= 3));
+    }
+
+    function nextMultiRhetoricQuestion() {
+      const item = takeFromQueue("rhetoric", buildMultiRhetoricPool(), multiRhetoricKey);
+      if (!item) {
+        showNoRhetoricQuestion();
+        return;
+      }
+      const negatives = poems.filter((poem) => !poem.rhetoric.includes(item.targetType));
+      const choices = shuffle([item.answerPoem, ...shuffle(negatives).slice(0, 3)]);
+      const current = { type: "multi", answer: String(item.answerPoem.id), targetType: item.targetType, choices, answerPoem: item.answerPoem };
+      state.rhetoric.current = current;
+      $("rhetoricCheckBtn").disabled = false;
+      $("rhetoricTitle").textContent = "和歌から選ぶ";
+      $("rhetoricKindPill").textContent = current.targetType;
+      $("rhetoricQuestion").innerHTML = `<p class="explain">「${escapeHtml(current.targetType)}」が用いられている和歌を選ぶ。</p>`;
+      renderPoemChoices(current.choices);
+    }
+
+    function showNoRhetoricQuestion() {
+      state.rhetoric.current = null;
+      $("rhetoricTitle").textContent = "修辞法";
+      $("rhetoricKindPill").textContent = "該当なし";
+      $("rhetoricQuestion").innerHTML = "";
+      $("rhetoricChoices").innerHTML = "";
+      $("rhetoricCheckBtn").disabled = true;
+      $("rhetoricNextBtn").disabled = true;
+      showResult("rhetoricResult", false, `
+        <p class="result-title">出題できる問題がありません</p>
+        <p class="explain">出題方式を「無作為に出す」に切り替えるか、別の問題を解いてから戻ってください。</p>
+      `);
+    }
+
+    function renderRhetoricChoices(items) {
+      $("rhetoricChoices").innerHTML = items.map((item) => `
+        <button class="choice-btn" type="button" data-value="${escapeHtml(item)}">${escapeHtml(item)}</button>
+      `).join("");
+      bindChoiceButtons();
+    }
+
+    function renderPoemChoices(items) {
+      $("rhetoricChoices").innerHTML = items.map((poem, index) => `
+        <button class="choice-btn" type="button" data-value="${poem.id}">
+          <span class="poem-option">
+            <span class="option-number">${index + 1}</span>
+            <span>
+              <strong>No.${poem.id}</strong><br>
+              ${escapeHtml(poem.text)}
+            </span>
+          </span>
+        </button>
+      `).join("");
+      bindChoiceButtons();
+    }
+
+    function bindChoiceButtons() {
+      document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (state.rhetoric.checked) return;
+          state.rhetoric.selected = button.dataset.value;
+          document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((item) => item.classList.remove("selected"));
+          button.classList.add("selected");
+        });
+      });
+    }
+
+    function checkRhetoricAnswer() {
+      if (state.rhetoric.checked || !state.rhetoric.current) return;
+      const current = state.rhetoric.current;
+      const passed = current.answer === state.rhetoric.selected;
+      state.rhetoric.checked = true;
+      state.rhetoric.total += 1;
+      if (passed) state.rhetoric.correct += 1;
+      const key = current.type === "single" ? singleRhetoricKey(current.prompt) : multiRhetoricKey(current);
+      const label = current.type === "single"
+        ? `No.${current.poem.id} ${current.prompt.phrase}`
+        : `${current.targetType}: No.${current.answerPoem.id}`;
+      recordQuestion("rhetoric", key, passed, label);
+      updateScores();
+      $("rhetoricCheckBtn").disabled = true;
+      $("rhetoricNextBtn").disabled = false;
+
+      document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((button) => {
+        if (button.dataset.value === current.answer) button.classList.add("correct");
+        if (button.dataset.value === state.rhetoric.selected && !passed) button.classList.add("wrong");
+      });
+
+      if (current.type === "single") {
+        showResult("rhetoricResult", passed, `
+          <p class="result-title">${passed ? "正解" : "確認"}</p>
+          <p class="explain">${escapeHtml(current.prompt.phrase)}: ${escapeHtml(current.answer)}。${escapeHtml(current.prompt.note)}</p>
+        `);
+      } else {
+        showResult("rhetoricResult", passed, `
+          <p class="result-title">${passed ? "正解" : "確認"}</p>
+          <p class="explain">No.${current.answerPoem.id}: ${escapeHtml(current.answerPoem.text)}</p>
+        `);
+      }
+    }
+
+    function showResult(id, passed, html) {
+      const result = $(id);
+      result.className = `result-card show ${passed ? "correct" : "wrong"}`;
+      result.innerHTML = html;
+    }
+
+    function hideResult(id) {
+      const result = $(id);
+      result.className = "result-card";
+      result.innerHTML = "";
+    }
+
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.mode === "grammar") {
+          showScreen("grammarScreen");
+          nextGrammarQuestion();
+        } else {
+          showScreen("rhetoricScreen");
+          nextRhetoricQuestion();
+        }
+      });
+    });
+
+    $("homeBtn").addEventListener("click", () => showScreen("homeScreen"));
+    $("resultBtn").addEventListener("click", () => {
+      renderResultScreen();
+      showScreen("resultScreen");
+    });
+    $("grammarCheckBtn").addEventListener("click", checkGrammarAnswer);
+    $("grammarNextBtn").addEventListener("click", nextGrammarQuestion);
+    $("rhetoricCheckBtn").addEventListener("click", checkRhetoricAnswer);
+    $("rhetoricNextBtn").addEventListener("click", nextRhetoricQuestion);
+    $("singleRhetoricTab").addEventListener("click", () => setRhetoricMode("single"));
+    $("multiRhetoricTab").addEventListener("click", () => setRhetoricMode("multi"));
+    $("grammarQuestionMode").addEventListener("change", (event) => {
+      state.grammar.questionMode = event.target.value;
+      resetQuestionQueue("grammar");
+      nextGrammarQuestion();
+    });
+    $("rhetoricQuestionMode").addEventListener("change", (event) => {
+      state.rhetoric.questionMode = event.target.value;
+      resetQuestionQueue("rhetoric");
+      nextRhetoricQuestion();
+    });
+
+    updateScores();
+  </script>
+</body>
+</html>
