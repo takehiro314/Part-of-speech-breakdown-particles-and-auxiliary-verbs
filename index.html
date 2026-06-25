@@ -749,9 +749,9 @@
         parse: "ひさかたの / 光 / のどけき / 春 / の / 日 / に / しづ心 / なく / 花 / の / 散る / らむ",
         rhetoric: ["枕詞"],
         tokens: [
-          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾", meaning: "春の日" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", meaning: "春の日" },
           { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・時間", meaning: "春の日に" },
-          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "主格", meaning: "花が散る" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "主格", meaning: "花が散る" },
           { surface: "らむ", pos: "助動詞", auxMeaning: "現在の原因推量", form: "連体形" }
         ]
       },
@@ -763,7 +763,7 @@
         rhetoric: ["掛詞", "序詞"],
         tokens: [
           { surface: "て", occurrence: 1, pos: "助詞", particleType: "接続助詞", usage: "単純接続", meaning: "湧いて、分けて" },
-          { surface: "き", occurrence: 2, pos: "助動詞", auxMeaning: "過去", form: "終止形" },
+          { surface: "き", pos: "助動詞", auxMeaning: "過去", form: "終止形" },
           { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用", meaning: "見たということで" },
           { surface: "て", occurrence: 2, pos: "助詞", particleType: "接続助詞", usage: "単純接続", meaning: "見たからといって" },
           { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問", meaning: "どうして恋しいのだろうか" },
@@ -782,9 +782,9 @@
           { surface: "に", occurrence: 1, pos: "助動詞", auxMeaning: "完了", form: "連用形" },
           { surface: "けり", pos: "助動詞", auxMeaning: "詠嘆", form: "終止形" },
           { surface: "が", pos: "助詞", particleType: "格助詞", usage: "連体修飾", meaning: "私の身" },
-          { surface: "に", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "場所・時間", meaning: "世の中で" },
+          { surface: "に", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "場所・時間", meaning: "世の中で" },
           { surface: "し", pos: "助動詞", auxMeaning: "過去", form: "連体形" },
-          { surface: "に", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "場所・時間", meaning: "その間に" }
+          { surface: "に", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "場所・時間", meaning: "その間に" }
         ]
       },
       {
@@ -953,22 +953,33 @@
       }[char]));
     }
 
-    function findTargetRange(text, token) {
+    function parseParts(poem) {
+      return poem.parse.split("/").map((part) => part.trim()).filter(Boolean);
+    }
+
+    function findTargetRange(poem, token) {
+      const text = poem.text;
       const occurrence = token.occurrence || 1;
-      let index = -1;
-      let from = 0;
-      for (let count = 0; count < occurrence; count += 1) {
-        index = text.indexOf(token.surface, from);
-        if (index < 0) break;
-        from = index + token.surface.length;
+      let textCursor = 0;
+      let seen = 0;
+
+      for (const part of parseParts(poem)) {
+        const index = text.indexOf(part, textCursor);
+        if (index < 0) continue;
+        textCursor = index + part.length;
+        if (part === token.surface) {
+          seen += 1;
+          if (seen === occurrence) {
+            return { start: index, end: index + part.length };
+          }
+        }
       }
-      if (index < 0) index = text.indexOf(token.surface);
-      if (index < 0) return null;
-      return { start: index, end: index + token.surface.length };
+
+      return null;
     }
 
     function renderPoem(poem, targetToken) {
-      const targetRange = targetToken ? findTargetRange(poem.text, targetToken) : null;
+      const targetRange = targetToken ? findTargetRange(poem, targetToken) : null;
       let cursor = 0;
       const lines = poem.text.split(" ").map((part) => {
         const partStart = cursor;
