@@ -988,19 +988,21 @@
     }
 
     function renderPoem(poem, targetToken) {
-      const parts = poem.text.split(" ");
-      let seen = 0;
-      const lines = parts.map((part) => {
+      const targetRange = targetToken ? findTargetRange(poem.text, targetToken) : null;
+      let cursor = 0;
+      const lines = poem.text.split(" ").map((part) => {
+        const partStart = cursor;
+        const partEnd = partStart + part.length;
+        cursor = partEnd + 1;
         let html = escapeHtml(part);
-        if (targetToken) {
-          html = html.replace(new RegExp(escapeRegExp(targetToken.surface)), (match) => {
-            seen += 1;
-            const targetOccurrence = targetToken.occurrence || 1;
-            if (seen === targetOccurrence) {
-              return `<span class="marked">${escapeHtml(match)}</span>`;
-            }
-            return escapeHtml(match);
-          });
+        if (targetRange && targetRange.start >= partStart && targetRange.start < partEnd) {
+          const localStart = targetRange.start - partStart;
+          const localEnd = Math.min(targetRange.end - partStart, part.length);
+          html = [
+            escapeHtml(part.slice(0, localStart)),
+            `<span class="marked">${escapeHtml(part.slice(localStart, localEnd))}</span>`,
+            escapeHtml(part.slice(localEnd))
+          ].join("");
         }
         return `<span class="waka-line">${html}</span>`;
       }).join("");
@@ -1013,8 +1015,18 @@
       `;
     }
 
-    function escapeRegExp(value) {
-      return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    function findTargetRange(text, token) {
+      const occurrence = token.occurrence || 1;
+      let index = -1;
+      let from = 0;
+      for (let count = 0; count < occurrence; count += 1) {
+        index = text.indexOf(token.surface, from);
+        if (index < 0) break;
+        from = index + token.surface.length;
+      }
+      if (index < 0) index = text.indexOf(token.surface);
+      if (index < 0) return null;
+      return { start: index, end: index + token.surface.length };
     }
 
     function updateScores() {
@@ -1035,6 +1047,7 @@
           <div class="result-row">
             <strong>${escapeHtml(item.label)}</strong><br>
             ${item.details ? item.details.map((detail) => `${escapeHtml(detail.label)}: ${escapeHtml(detail.value)}`).join("<br>") : ""}
+            ${item.supplement ? `<br>${escapeHtml(item.supplement)}` : ""}
           </div>
         `).join("")
         : `<div class="result-row">なし</div>`;
@@ -1061,6 +1074,17 @@
         { label: "活用形", value: token.form },
         { label: "意味", value: token.auxMeaning }
       ];
+    }
+
+    function grammarSupplement(token) {
+      if (token.pos !== "助詞") return "";
+      if (token.usage === "連体修飾") {
+        return "補足: 「連体修飾」は、後ろの体言にかかって名詞を詳しくする働きです。";
+      }
+      if (token.usage.startsWith("連体修飾・")) {
+        return "補足: 「連体修飾・○○」は、基本は連体修飾で、○○は所属・所在・場所などの細かい関係を示す補足です。";
+      }
+      return "";
     }
 
     function makeSelect(id, label, values) {
@@ -1111,11 +1135,12 @@
       }
     }
 
-    function recordQuestion(domain, key, passed, label, details = null) {
+    function recordQuestion(domain, key, passed, label, details = null, supplement = "") {
       const existing = state[domain].records[key] || { attempts: 0, label };
       existing.attempts += 1;
       existing.label = label;
       if (details) existing.details = details;
+      existing.supplement = supplement;
       existing.lastCorrect = passed;
       state[domain].records[key] = existing;
     }
@@ -1194,13 +1219,15 @@
 
         state.grammar.checked = true;
         state.grammar.total += 1;
-        recordQuestion("grammar", grammarKey(state.grammar.current), false, `No.${state.grammar.current.poem.id} ${token.surface}`, grammarAnswerDetails(token));
+        recordQuestion("grammar", grammarKey(state.grammar.current), false, `No.${state.grammar.current.poem.id} ${token.surface}`, grammarAnswerDetails(token), grammarSupplement(token));
         updateScores();
         $("grammarCheckBtn").disabled = true;
         $("grammarNextBtn").disabled = false;
+        const supplement = grammarSupplement(token);
         showResult("grammarResult", false, `
           <p class="result-title">確認</p>
           <p class="explain">マーク語「${escapeHtml(token.surface)}」の品詞は ${escapeHtml(token.pos)}。</p>
+          ${supplement ? `<p class="explain">${escapeHtml(supplement)}</p>` : ""}
         `);
         return;
       }
@@ -1219,17 +1246,19 @@
       state.grammar.checked = true;
       state.grammar.total += 1;
       if (passed) state.grammar.correct += 1;
-      recordQuestion("grammar", grammarKey(state.grammar.current), passed, `No.${state.grammar.current.poem.id} ${token.surface}`, grammarAnswerDetails(token));
+      recordQuestion("grammar", grammarKey(state.grammar.current), passed, `No.${state.grammar.current.poem.id} ${token.surface}`, grammarAnswerDetails(token), grammarSupplement(token));
       updateScores();
       $("grammarCheckBtn").disabled = true;
       $("grammarNextBtn").disabled = false;
 
       const detail = checks.map((item) => `<li>${escapeHtml(item.label)}: ${escapeHtml(item.expected)}</li>`).join("");
+      const supplement = grammarSupplement(token);
       showResult("grammarResult", passed, `
         <p class="result-title">${passed ? "正解" : "確認"}</p>
         <p class="explain">マーク語「${escapeHtml(token.surface)}」</p>
         <ul class="compact-list"><li>品詞: ${escapeHtml(token.pos)}</li></ul>
         <ul class="compact-list">${detail}</ul>
+        ${supplement ? `<p class="explain">${escapeHtml(supplement)}</p>` : ""}
       `);
     }
 
