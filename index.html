@@ -291,6 +291,67 @@
       line-height: 1.7;
     }
 
+    .progress-list,
+    .analysis-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 84px;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 12px;
+    }
+
+    .progress-track {
+      height: 12px;
+      border-radius: 999px;
+      background: #e7edf2;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      border-radius: inherit;
+    }
+
+    .analysis-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 16px;
+    }
+
+    .analysis-card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .token-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .token-table th,
+    .token-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 8px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
     .tabs {
       display: flex;
       gap: 8px;
@@ -580,6 +641,7 @@
         </div>
       </div>
       <div class="actions" style="margin-top:0">
+        <button class="ghost-btn" id="analysisBtn" type="button">品詞分解一覧</button>
         <button class="ghost-btn" id="resultBtn" type="button">結果を見る</button>
         <button class="ghost-btn" id="homeBtn" type="button">最初の画面へ</button>
       </div>
@@ -652,6 +714,7 @@
               <span class="score-label">解答</span>
             </div>
           </div>
+          <p class="small">助詞の意味は「学ぶ・教える.COM」の助詞一覧表に準拠しています。独自の細分類は使わず、表にある「連体修飾（～ノ）」へ統一しています。</p>
         </aside>
       </div>
     </section>
@@ -717,7 +780,20 @@
             <span class="score-label">修辞法</span>
           </div>
         </div>
+        <h3>学習進捗</h3>
+        <div class="progress-list" id="progressList"></div>
         <div class="result-list" id="resultDetails"></div>
+      </section>
+    </section>
+
+    <section class="screen" id="analysisScreen">
+      <section class="question-card">
+        <div class="question-head">
+          <h2 class="question-title">11首の品詞分解一覧</h2>
+          <span class="pill">簡易確認</span>
+        </div>
+        <p class="explain">アプリの出題データに入っている語を、和歌ごとに確認できます。</p>
+        <div class="analysis-list" id="analysisList"></div>
       </section>
     </section>
   </main>
@@ -731,11 +807,11 @@
         rhetoric: ["序詞", "掛詞"],
         tokens: [
           { surface: "吹け", pos: "動詞", conjugation: "カ行四段活用", form: "已然形" },
-          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接確定条件", connection: "已然形に接続", meaning: "風が吹くと" },
-          { surface: "つ", pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "沖の白波", skip: true },
-          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "時", connection: "体言に接続", meaning: "夜中に" },
-          { surface: "や", pos: "助詞", particleType: "係助詞", usage: "疑問", connection: "体言・連用語などに接続", meaning: "夜中に...だろうか" },
-          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "君が越える" },
+          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接確定条件（～スルト・～ト・～ノデ）", connection: "已然形に接続", meaning: "風が吹くと" },
+          { surface: "つ", pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "沖の白波", skip: true },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "夜中に" },
+          { surface: "や", pos: "助詞", particleType: "係助詞", usage: "疑問（～カ）", connection: "体言・連用語などに接続", meaning: "夜中に...だろうか" },
+          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "主格（～ガ）", connection: "体言に接続", meaning: "君が越える" },
           { surface: "越ゆ", pos: "動詞", conjugation: "ヤ行下二段活用", form: "終止形" },
           { surface: "らむ", pos: "助動詞", auxMeaning: "現在推量", form: "連体形" }
         ]
@@ -746,12 +822,12 @@
         reading: "あしひきの やまどりのをの しだりをの ながながしよを ひとりかもねむ",
         rhetoric: ["枕詞", "序詞"],
         tokens: [
-          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "山鳥の尾" },
-          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "同格寄りの連体修飾", connection: "体言に接続", meaning: "尾である、垂れた尾" },
-          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "比喩的連体修飾", connection: "体言に接続", meaning: "しだり尾のように長い夜" },
-          { surface: "を", pos: "助詞", particleType: "格助詞", usage: "経過する時間", connection: "体言に接続", meaning: "長い夜を過ごす" },
-          { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問・詠嘆", connection: "副詞的語に接続", meaning: "ひとり寝るのだろうか" },
-          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "詠嘆・強意", connection: "係助詞かに接続", meaning: "かもで自問・詠嘆" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "山鳥の尾" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "同格（～デ）", connection: "体言に接続", meaning: "尾である、垂れた尾" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "比喩（～ノヨウニ）", connection: "体言に接続", meaning: "しだり尾のように長い夜" },
+          { surface: "を", pos: "助詞", particleType: "格助詞", usage: "経過時間（～ヲ）", connection: "体言に接続", meaning: "長い夜を過ごす" },
+          { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問（～カ）", connection: "副詞的語に接続", meaning: "ひとり寝るのだろうか" },
+          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強調（～モ）", connection: "係助詞かに接続", meaning: "かもで自問・詠嘆" },
           { surface: "寝", pos: "動詞", conjugation: "ナ行下二段活用", form: "未然形" },
           { surface: "む", pos: "助動詞", auxMeaning: "推量", form: "連体形" }
         ]
@@ -764,11 +840,11 @@
         tokens: [
           { surface: "行き", occurrence: 1, pos: "動詞", conjugation: "カ行四段活用", form: "連用形" },
           { surface: "行き", occurrence: 2, pos: "動詞", conjugation: "カ行四段活用", form: "連用形" },
-          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "題示", connection: "体言に接続", meaning: "野守は" },
+          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "提示（～ハ）", connection: "体言に接続", meaning: "野守は" },
           { surface: "見", pos: "動詞", conjugation: "マ行上一段活用", form: "未然形" },
           { surface: "ず", pos: "助動詞", auxMeaning: "打消", form: "終止形" },
-          { surface: "や", pos: "助詞", particleType: "係助詞", usage: "反語", connection: "終止形に接続", meaning: "見ないだろうか、いや見るだろう", skip: true },
-          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "君が袖を振る" },
+          { surface: "や", pos: "助詞", particleType: "係助詞", usage: "反語（～カ、イヤ～ナイ）", connection: "終止形に接続", meaning: "見ないだろうか、いや見るだろう", skip: true },
+          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "主格（～ガ）", connection: "体言に接続", meaning: "君が袖を振る" },
           { surface: "振る", pos: "動詞", conjugation: "ラ行四段活用", form: "連体形" }
         ]
       },
@@ -778,14 +854,14 @@
         reading: "やまふかみ はるともしらぬ まつのとに たえだえかかる ゆきのたまみづ",
         rhetoric: [],
         tokens: [
-          { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用・内容", connection: "体言に接続", meaning: "春であると" },
-          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強意・添加", connection: "格助詞とに接続", meaning: "春だとさえ" },
+          { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用（～ト）", connection: "体言に接続", meaning: "春であると" },
+          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強調（～モ）", connection: "格助詞とに接続", meaning: "春だとさえ" },
           { surface: "知ら", pos: "動詞", conjugation: "ラ行四段活用", form: "未然形" },
           { surface: "ぬ", pos: "助動詞", auxMeaning: "打消", form: "連体形" },
-          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "松の戸" },
-          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・着点", connection: "体言に接続", meaning: "戸にかかる" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "松の戸" },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "戸にかかる" },
           { surface: "かかる", pos: "動詞", conjugation: "ラ行四段活用", form: "連体形" },
-          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "雪解けの玉水" }
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "雪解けの玉水" }
         ]
       },
       {
@@ -794,13 +870,13 @@
         reading: "よのなかに たえてさくらの なかりせば はるのこころは のどけからまし",
         rhetoric: [],
         tokens: [
-          { surface: "に", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "場所・範囲", connection: "体言に接続", meaning: "この世に" },
-          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "桜がない" },
+          { surface: "に", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "この世に" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "主格（～ガ）", connection: "体言に接続", meaning: "桜がない" },
           { surface: "なかり", pos: "形容詞", conjugation: "ク活用", form: "連用形" },
           { surface: "せ", pos: "助動詞", auxMeaning: "過去", form: "未然形" },
-          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "仮定条件", connection: "未然形に接続", meaning: "もしなかったなら" },
-          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "春を過ごす心" },
-          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "題示", connection: "体言に接続", meaning: "心は" },
+          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接仮定条件（モシ～ナラバ）", connection: "未然形に接続", meaning: "もしなかったなら" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "春を過ごす心" },
+          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "提示（～ハ）", connection: "体言に接続", meaning: "心は" },
           { surface: "のどけから", pos: "形容詞", conjugation: "ク活用", form: "未然形" },
           { surface: "まし", pos: "助動詞", auxMeaning: "反実仮想", form: "終止形" }
         ]
@@ -812,10 +888,10 @@
         rhetoric: ["枕詞"],
         tokens: [
           { surface: "のどけき", pos: "形容詞", conjugation: "ク活用", form: "連体形" },
-          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "春の日" },
-          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "時", connection: "体言に接続", meaning: "春の日に" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "春の日" },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "春の日に" },
           { surface: "なく", pos: "形容詞", conjugation: "ク活用", form: "連用形" },
-          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "主格", connection: "体言に接続", meaning: "花が散る" },
+          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "主格（～ガ）", connection: "体言に接続", meaning: "花が散る" },
           { surface: "散る", pos: "動詞", conjugation: "ラ行四段活用", form: "終止形" },
           { surface: "らむ", pos: "助動詞", auxMeaning: "現在の原因推量", form: "連体形" }
         ]
@@ -827,13 +903,13 @@
         rhetoric: ["掛詞", "序詞"],
         tokens: [
           { surface: "わき", pos: "動詞", conjugation: "カ行四段活用", form: "連用形" },
-          { surface: "て", occurrence: 1, pos: "助詞", particleType: "接続助詞", usage: "接続・継起", connection: "連用形に接続", meaning: "湧いて、分けて" },
+          { surface: "て", occurrence: 1, pos: "助詞", particleType: "接続助詞", usage: "単純接続（～テ）", connection: "連用形に接続", meaning: "湧いて、分けて" },
           { surface: "流るる", pos: "動詞", conjugation: "ラ行下二段活用", form: "連体形" },
           { surface: "見", pos: "動詞", conjugation: "マ行上一段活用", form: "連用形" },
           { surface: "き", occurrence: 2, pos: "助動詞", auxMeaning: "過去", form: "終止形" },
-          { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用・内容", connection: "終止形に接続", meaning: "いつ見たということで" },
-          { surface: "て", occurrence: 2, pos: "助詞", particleType: "接続助詞", usage: "理由・条件", connection: "格助詞とに接続", meaning: "見たからといって" },
-          { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問", connection: "接続助詞てに接続", meaning: "どうして恋しいのだろうか" },
+          { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用（～ト）", connection: "終止形に接続", meaning: "いつ見たということで" },
+          { surface: "て", occurrence: 2, pos: "助詞", particleType: "接続助詞", usage: "単純接続（～テ）", connection: "格助詞とに接続", meaning: "見たからといって" },
+          { surface: "か", pos: "助詞", particleType: "係助詞", usage: "疑問（～カ）", connection: "接続助詞てに接続", meaning: "どうして恋しいのだろうか" },
           { surface: "恋しかる", pos: "形容詞", conjugation: "シク活用", form: "連体形" },
           { surface: "らむ", pos: "助動詞", auxMeaning: "現在推量", form: "連体形" }
         ]
@@ -844,18 +920,18 @@
         reading: "はなのいろは うつりにけりな いたづらに わがみよにふる ながめせしまに",
         rhetoric: ["掛詞"],
         tokens: [
-          { surface: "の", pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "花の色" },
-          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "題示", connection: "体言に接続", meaning: "花の色は" },
+          { surface: "の", pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "花の色" },
+          { surface: "は", pos: "助詞", particleType: "係助詞", usage: "提示（～ハ）", connection: "体言に接続", meaning: "花の色は" },
           { surface: "移り", pos: "動詞", conjugation: "ラ行四段活用", form: "連用形" },
           { surface: "に", occurrence: 1, pos: "助動詞", auxMeaning: "完了", form: "連用形" },
           { surface: "けり", pos: "助動詞", auxMeaning: "詠嘆", form: "終止形" },
           { surface: "いたづらに", pos: "形容動詞", conjugation: "ナリ活用", form: "連用形" },
-          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "連体修飾・所属", connection: "代名詞に接続", meaning: "私の身" },
-          { surface: "に", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "場所・場面", connection: "体言に接続", meaning: "世の中で" },
+          { surface: "が", pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "代名詞に接続", meaning: "私の身" },
+          { surface: "に", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "世の中で" },
           { surface: "ふる", pos: "動詞", conjugation: "ハ行下二段活用またはラ行四段活用", form: "連体形", skip: true },
           { surface: "せ", pos: "動詞", conjugation: "サ行変格活用", form: "未然形" },
           { surface: "し", pos: "助動詞", auxMeaning: "過去", form: "連体形" },
-          { surface: "に", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "時", connection: "体言に接続", meaning: "その間に" }
+          { surface: "に", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "その間に" }
         ]
       },
       {
@@ -865,17 +941,17 @@
         rhetoric: ["掛詞", "枕詞", "序詞", "折句"],
         tokens: [
           { surface: "着", pos: "動詞", conjugation: "カ行上一段活用", form: "連用形" },
-          { surface: "つつ", pos: "助詞", particleType: "接続助詞", usage: "反復・継続", connection: "連用形に接続", meaning: "何度も着て" },
+          { surface: "つつ", pos: "助詞", particleType: "接続助詞", usage: "動作の反復・継続（～タリ～タリ・～シナガラ）", connection: "連用形に接続", meaning: "何度も着て" },
           { surface: "なれ", pos: "動詞", conjugation: "ラ行下二段活用", form: "連用形" },
           { surface: "に", pos: "助動詞", auxMeaning: "完了", form: "連用形" },
           { surface: "し", occurrence: 1, pos: "助動詞", auxMeaning: "過去", form: "連体形" },
-          { surface: "し", occurrence: 2, pos: "助詞", particleType: "副助詞", usage: "強意", connection: "体言に接続", meaning: "妻がまさにいるので" },
-          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接確定条件", connection: "已然形に接続", meaning: "妻がいるので" },
+          { surface: "し", occurrence: 2, pos: "助詞", particleType: "間投助詞", usage: "強調（～シ）", connection: "文中に接続", meaning: "妻がまさにいるので" },
+          { surface: "ば", pos: "助詞", particleType: "接続助詞", usage: "順接確定条件（～スルト・～ト・～ノデ）", connection: "已然形に接続", meaning: "妻がいるので" },
           { surface: "来", pos: "動詞", conjugation: "カ行変格活用", form: "連用形" },
           { surface: "ぬる", pos: "助動詞", auxMeaning: "完了", form: "連体形" },
-          { surface: "を", pos: "助詞", particleType: "格助詞", usage: "動作・感情の対象", connection: "体言に接続", meaning: "旅を思う" },
-          { surface: "し", occurrence: 3, pos: "助詞", particleType: "副助詞", usage: "強意", connection: "格助詞をに接続", meaning: "旅をこそ" },
-          { surface: "ぞ", pos: "助詞", particleType: "係助詞", usage: "強意", connection: "副助詞しに接続", meaning: "思ふを連体形にする係り結び" },
+          { surface: "を", pos: "助詞", particleType: "格助詞", usage: "対象（～ヲ）", connection: "体言に接続", meaning: "旅を思う" },
+          { surface: "し", occurrence: 3, pos: "助詞", particleType: "間投助詞", usage: "強調（～シ）", connection: "文中に接続", meaning: "旅をこそ" },
+          { surface: "ぞ", pos: "助詞", particleType: "係助詞", usage: "強調（～ダ）", connection: "間投助詞しに接続", meaning: "思ふを連体形にする係り結び" },
           { surface: "思ふ", pos: "動詞", conjugation: "ハ行四段活用", form: "連体形" }
         ]
       },
@@ -885,14 +961,14 @@
         reading: "はるのよの ゆめのうきはし とだえして みねにわかるる よこぐものそら",
         rhetoric: [],
         tokens: [
-          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "春の夜" },
-          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "夜の夢" },
-          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "比喩的連体修飾", connection: "体言に接続", meaning: "夢のようにはかない浮橋" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "春の夜" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "夜の夢" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "比喩（～ノヨウニ）", connection: "体言に接続", meaning: "夢のようにはかない浮橋" },
           { surface: "し", pos: "動詞", conjugation: "サ行変格活用", form: "連用形" },
-          { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "接続・継起", connection: "連用形に接続", meaning: "途絶えて" },
-          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・接点", connection: "体言に接続", meaning: "峰のあたりで" },
+          { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "単純接続（～テ）", connection: "連用形に接続", meaning: "途絶えて" },
+          { surface: "に", pos: "助詞", particleType: "格助詞", usage: "場所・時間（～ニ）", connection: "体言に接続", meaning: "峰のあたりで" },
           { surface: "別るる", pos: "動詞", conjugation: "ラ行下二段活用", form: "連体形" },
-          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "連体修飾", connection: "体言に接続", meaning: "横雲のある空" }
+          { surface: "の", occurrence: 4, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "横雲のある空" }
         ]
       },
       {
@@ -902,12 +978,12 @@
         rhetoric: [],
         tokens: [
           { surface: "とめ", pos: "動詞", conjugation: "マ行下二段活用", form: "連用形" },
-          { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "接続・継起", connection: "連用形に接続", meaning: "馬を止めて" },
+          { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "単純接続（～テ）", connection: "連用形に接続", meaning: "馬を止めて" },
           { surface: "うちはらふ", pos: "動詞", conjugation: "ハ行四段活用", form: "連体形" },
-          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強意・添加", connection: "体言に接続", meaning: "物陰さえもない" },
-          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾・所在", connection: "体言に接続", meaning: "佐野の渡し場" },
-          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾・場所", connection: "体言に接続", meaning: "渡し場の雪" },
-          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾・状態", connection: "体言に接続", meaning: "雪の夕暮れ" }
+          { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強調（～モ）", connection: "体言に接続", meaning: "物陰さえもない" },
+          { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "佐野の渡し場" },
+          { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "渡し場の雪" },
+          { surface: "の", occurrence: 3, pos: "助詞", particleType: "格助詞", usage: "連体修飾（～ノ）", connection: "体言に接続", meaning: "雪の夕暮れ" }
         ]
       }
     ];
@@ -938,16 +1014,15 @@
         "ク活用", "シク活用", "ナリ活用", "ハ行下二段活用またはラ行四段活用"
       ],
       form: ["未然形", "連用形", "終止形", "連体形", "已然形", "命令形"],
-      particleType: ["格助詞", "係助詞", "接続助詞", "副助詞", "終助詞"],
+      particleType: ["格助詞", "係助詞", "接続助詞", "副助詞", "終助詞", "間投助詞"],
       auxMeaning: ["打消", "完了", "過去", "詠嘆", "推量", "現在推量", "現在の原因推量", "反実仮想"],
       usage: [
-        "主格", "連体修飾", "同格寄りの連体修飾", "比喩的連体修飾",
-        "時", "場所・範囲", "場所・着点", "場所・接点", "連体修飾・所属",
-        "連体修飾・所在", "連体修飾・場所", "連体修飾・状態",
-        "動作・感情の対象", "経過する時間", "引用・内容",
-        "題示", "疑問", "反語", "疑問・詠嘆", "詠嘆・強意",
-        "強意", "強意・添加", "順接確定条件", "仮定条件", "接続・継起",
-        "理由・条件", "反復・継続"
+        "主格（～ガ）", "連体修飾（～ノ）", "同格（～デ）", "比喩（～ノヨウニ）",
+        "対象（～ヲ）", "経過時間（～ヲ）", "引用（～ト）", "場所・時間（～ニ）",
+        "提示（～ハ）", "添加（～モ）", "強調（～モ）", "強調（～ダ）", "強調（～シ）",
+        "疑問（～カ）", "反語（～カ、イヤ～ナイ）",
+        "順接仮定条件（モシ～ナラバ）", "順接確定条件（～スルト・～ト・～ノデ）",
+        "単純接続（～テ）", "動作の反復・継続（～タリ～タリ・～シナガラ）"
       ],
       connection: [
         "体言に接続", "代名詞に接続", "終止形に接続", "未然形に接続",
@@ -1036,9 +1111,68 @@
       $("rhetoricTotal").textContent = state.rhetoric.total;
     }
 
+    function allProgressItems() {
+      const grammarItems = buildGrammarPool().map((item) => ({
+        key: grammarKey(item),
+        poemId: item.poem.id
+      }));
+      const singleItems = rhetoricPrompts.map((prompt) => ({
+        key: singleRhetoricKey(prompt),
+        poemId: prompt.poemId
+      }));
+      const multiItems = buildMultiRhetoricPool().map((item) => ({
+        key: multiRhetoricKey(item),
+        poemId: item.answerPoem.id
+      }));
+      return [...grammarItems, ...singleItems, ...multiItems];
+    }
+
+    function answeredKeys() {
+      return new Set([
+        ...Object.keys(state.grammar.records),
+        ...Object.keys(state.rhetoric.records)
+      ]);
+    }
+
+    function progressPercent(done, total) {
+      return total ? Math.round((done / total) * 100) : 0;
+    }
+
+    function renderProgressList() {
+      const items = allProgressItems();
+      const answered = answeredKeys();
+      const rows = poems.map((poem) => {
+        const poemItems = items.filter((item) => item.poemId === poem.id);
+        const done = poemItems.filter((item) => answered.has(item.key)).length;
+        const percent = progressPercent(done, poemItems.length);
+        return `
+          <div class="progress-row">
+            <div>
+              <strong>No.${poem.id}</strong> ${escapeHtml(poem.text)}
+              <div class="progress-track"><div class="progress-fill" style="width:${percent}%"></div></div>
+            </div>
+            <strong>${percent}%</strong>
+          </div>
+        `;
+      }).join("");
+      const doneAll = items.filter((item) => answered.has(item.key)).length;
+      const allPercent = progressPercent(doneAll, items.length);
+      $("progressList").innerHTML = `
+        <div class="progress-row">
+          <div>
+            <strong>全体</strong>
+            <div class="progress-track"><div class="progress-fill" style="width:${allPercent}%"></div></div>
+          </div>
+          <strong>${allPercent}%</strong>
+        </div>
+        ${rows}
+      `;
+    }
+
     function renderResultScreen() {
       $("resultGrammarScore").textContent = `${state.grammar.correct}/${state.grammar.total}`;
       $("resultRhetoricScore").textContent = `${state.rhetoric.correct}/${state.rhetoric.total}`;
+      renderProgressList();
 
       const grammarMissed = Object.values(state.grammar.records).filter((record) => record.lastCorrect === false);
       const rhetoricMissed = Object.values(state.rhetoric.records).filter((record) => record.lastCorrect === false);
@@ -1078,13 +1212,44 @@
 
     function grammarSupplement(token) {
       if (token.pos !== "助詞") return "";
-      if (token.usage === "連体修飾") {
-        return "補足: 「連体修飾」は、後ろの体言にかかって名詞を詳しくする働きです。";
-      }
-      if (token.usage.startsWith("連体修飾・")) {
-        return "補足: 「連体修飾・○○」は、基本は連体修飾で、○○は所属・所在・場所などの細かい関係を示す補足です。";
+      if (token.usage === "連体修飾（～ノ）") {
+        return "補足: 指定表に準拠し、所属・所在・状態などの細分類はまとめて「連体修飾（～ノ）」としています。";
       }
       return "";
+    }
+
+    function tokenDetailText(token) {
+      if (token.pos === "助詞") {
+        return `${token.particleType || ""} / ${token.usage || ""}`;
+      }
+      if (token.pos === "助動詞") {
+        return `${token.auxMeaning || ""} / ${token.form || ""}`;
+      }
+      return [token.conjugation, token.form].filter(Boolean).join(" / ");
+    }
+
+    function renderAnalysisScreen() {
+      $("analysisList").innerHTML = poems.map((poem) => {
+        const rows = poem.tokens.map((token) => `
+          <tr>
+            <td>${escapeHtml(token.surface)}${token.occurrence ? `(${token.occurrence})` : ""}</td>
+            <td>${escapeHtml(token.pos)}</td>
+            <td>${escapeHtml(tokenDetailText(token))}</td>
+          </tr>
+        `).join("");
+        return `
+          <article class="analysis-card">
+            <h3>No.${poem.id} ${escapeHtml(poem.text)}</h3>
+            <div class="small">${escapeHtml(poem.reading)}</div>
+            <table class="token-table">
+              <thead>
+                <tr><th>語</th><th>品詞</th><th>確認事項</th></tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </article>
+        `;
+      }).join("");
     }
 
     function makeSelect(id, label, values) {
@@ -1431,6 +1596,10 @@
     });
 
     $("homeBtn").addEventListener("click", () => showScreen("homeScreen"));
+    $("analysisBtn").addEventListener("click", () => {
+      renderAnalysisScreen();
+      showScreen("analysisScreen");
+    });
     $("resultBtn").addEventListener("click", () => {
       renderResultScreen();
       showScreen("resultScreen");
