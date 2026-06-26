@@ -1,4 +1,4 @@
-<!doctype html>
+.<!doctype html>
 <html lang="ja">
 <head>
   <meta charset="utf-8">
@@ -585,7 +585,7 @@
       <div class="mode-shell">
         <section class="question-card">
           <div class="tabs">
-            <button class="tab-btn active" id="singleRhetoricTab" type="button">句から答える</button>
+            <button class="tab-btn active" id="singleRhetoricTab" type="button">一首から答える</button>
             <button class="tab-btn" id="multiRhetoricTab" type="button">和歌から選ぶ</button>
           </div>
           <div class="question-head">
@@ -716,7 +716,7 @@
         text: "山深み 春とも知らぬ 松の戸に 絶え絶えかかる 雪の玉水",
         reading: "やまふかみ はるともしらぬ まつのとに たえだえかかる ゆきのたまみづ",
         parse: "山 / 深み / 春 / と / も / 知ら / ぬ / 松 / の / 戸 / に / たえだえ / かかる / 雪 / の / 玉水",
-        rhetoric: [],
+        rhetoric: ["体言止め"],
         tokens: [
           { surface: "と", pos: "助詞", particleType: "格助詞", usage: "引用", meaning: "春であると" },
           { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強調", meaning: "春だとさえ" },
@@ -760,7 +760,7 @@
         text: "みかの原 わきて流るる いづみ川 いつ見きとてか 恋しかるらむ",
         reading: "みかのはら わきてながるる いづみがは いつみきとてか こひしかるらむ",
         parse: "みかの原 / わき / て / 流るる / いづみ川 / いつ / 見 / き / と / て / か / 恋しかる / らむ",
-        rhetoric: ["掛詞", "序詞"],
+        rhetoric: ["掛詞", "序詞", "縁語"],
         tokens: [
           { surface: "て", occurrence: 1, pos: "助詞", particleType: "接続助詞", usage: "単純接続", meaning: "湧いて、分けて" },
           { surface: "き", pos: "助動詞", auxMeaning: "過去", form: "終止形" },
@@ -792,7 +792,7 @@
         text: "唐衣 着つつなれにし つましあれば はるばる来ぬる 旅をしぞ思ふ",
         reading: "からころも きつつなれにし つましあれば はるばるきぬる たびをしぞおもふ",
         parse: "唐衣 / 着 / つつ / なれ / に / し / つま / し / あれ / ば / はるばる / 来 / ぬる / 旅 / を / し / ぞ / 思ふ",
-        rhetoric: ["掛詞", "枕詞", "序詞", "折句"],
+        rhetoric: ["掛詞", "枕詞", "序詞", "折句", "縁語"],
         tokens: [
           { surface: "つつ", pos: "助詞", particleType: "接続助詞", usage: "動作の反復・継続", meaning: "何度も着て" },
           { surface: "に", pos: "助動詞", auxMeaning: "完了", form: "連用形" },
@@ -810,7 +810,7 @@
         text: "春の夜の 夢の浮橋 とだえして 峰に別るる 横雲の空",
         reading: "はるのよの ゆめのうきはし とだえして みねにわかるる よこぐものそら",
         parse: "春 / の / 夜 / の / 夢 / の / 浮橋 / とだえ / し / て / 峰 / に / 別るる / 横雲 / の / 空",
-        rhetoric: [],
+        rhetoric: ["縁語", "体言止め", "本歌取り"],
         tokens: [
           { surface: "の", occurrence: 1, pos: "助詞", particleType: "格助詞", usage: "連体修飾", meaning: "春の夜" },
           { surface: "の", occurrence: 2, pos: "助詞", particleType: "格助詞", usage: "連体修飾", meaning: "夜の夢" },
@@ -825,7 +825,7 @@
         text: "駒とめて 袖うちはらふ かげもなし 佐野のわたりの 雪の夕暮",
         reading: "こまとめて そでうちはらふ かげもなし さののわたりの ゆきのゆふぐれ",
         parse: "駒 / とめ / て / 袖 / うちはらふ / かげ / も / なし / 佐野 / の / わたり / の / 雪 / の / 夕暮れ",
-        rhetoric: [],
+        rhetoric: ["本歌取り", "体言止め"],
         tokens: [
           { surface: "て", pos: "助詞", particleType: "接続助詞", usage: "単純接続", meaning: "馬を止めて" },
           { surface: "も", pos: "助詞", particleType: "係助詞", usage: "強調", meaning: "物陰さえもない" },
@@ -836,6 +836,8 @@
       }
     ];
 
+    const rhetoricTypes = ["掛詞", "枕詞", "序詞", "折句", "体言止め", "縁語", "本歌取り"];
+
     const rhetoricPrompts = [
       { poemId: 1, phrase: "風吹けば沖つ白波", answer: "序詞", note: "「たつ」を導く。" },
       { poemId: 1, phrase: "たつ", answer: "掛詞", note: "波が立つ、竜田山の「たつ」。" },
@@ -845,13 +847,25 @@
       { poemId: 6, phrase: "ひさかたの", answer: "枕詞", note: "「光」にかかる。" },
       { poemId: 7, phrase: "わきて", answer: "掛詞", note: "湧きて、分きて。" },
       { poemId: 7, phrase: "みかの原わきて流るるいづみ川", answer: "序詞", note: "「いつ見」を導く。" },
+      { poemId: 7, phrase: "わきて／いづみ川", answer: "縁語", note: "「湧き」は水が湧くことを表し、「泉」と意味上つながる。" },
       { poemId: 8, phrase: "ふる", answer: "掛詞", note: "経る、降る。" },
       { poemId: 8, phrase: "ながめ", answer: "掛詞", note: "眺め、長雨。" },
       { poemId: 9, phrase: "唐衣", answer: "枕詞", note: "「着」にかかる。" },
       { poemId: 9, phrase: "唐衣着つつ", answer: "序詞", note: "「なれ」を導く。" },
       { poemId: 9, phrase: "つま", answer: "掛詞", note: "衣の褄、都の妻。" },
-      { poemId: 9, phrase: "か・き・つ・は・た", answer: "折句", note: "各句頭で「かきつはた」。" }
+      { poemId: 9, phrase: "か・き・つ・は・た", answer: "折句", note: "各句頭で「かきつはた」。" },
+      { poemId: 9, phrase: "なれ・つま・はるばる・きぬる", answer: "縁語", note: "着慣れる、褄、張る、着ぬるが「唐衣」と意味上つながる。" },
+      { poemId: 4, phrase: "雪の玉水", answer: "体言止め", note: "名詞で歌を結ぶ。" },
+      { poemId: 10, phrase: "夢の浮橋 とだえして 峰に別るる", answer: "縁語", note: "浮橋・とだえ・別るるが、途切れるものとして意味上つながる。" },
+      { poemId: 10, phrase: "横雲の空", answer: "体言止め", note: "名詞で歌を結ぶ。" },
+      { poemId: 10, phrase: "横雲の空", answer: "本歌取り", note: "藤原家隆の「霞立つ末の松山...横雲の空」をふまえた表現とされる。" },
+      { poemId: 11, phrase: "佐野のわたりの雪の夕暮", answer: "本歌取り", note: "万葉集の「苦しくも降り来る雨か...狭野の渡りに」をふまえた表現。" },
+      { poemId: 11, phrase: "雪の夕暮", answer: "体言止め", note: "名詞で歌を結ぶ。" }
     ];
+
+    const rhetoricAllPrompts = poems
+      .filter((poem) => poem.rhetoric.length)
+      .map((poem) => ({ poemId: poem.id, answers: poem.rhetoric }));
 
     const options = {
       pos: ["助詞", "助動詞"],
@@ -910,7 +924,7 @@
         state.grammar.records = saved.grammar?.records || {};
         state.rhetoric.correct = Number(saved.rhetoric?.correct || 0);
         state.rhetoric.total = Number(saved.rhetoric?.total || 0);
-        state.rhetoric.mode = saved.rhetoric?.mode || "single";
+        state.rhetoric.mode = ["single", "multi"].includes(saved.rhetoric?.mode) ? saved.rhetoric.mode : "single";
         state.rhetoric.questionMode = saved.rhetoric?.questionMode || "random";
         state.rhetoric.records = saved.rhetoric?.records || {};
       } catch (error) {
@@ -1033,6 +1047,10 @@
 
     function singleRhetoricKey(prompt) {
       return `rs:${prompt.poemId}:${prompt.phrase}:${prompt.answer}`;
+    }
+
+    function allRhetoricKey(prompt) {
+      return `ra:${prompt.poemId}:${prompt.answers.join("+")}`;
     }
 
     function multiRhetoricKey(item) {
@@ -1226,26 +1244,25 @@
     }
 
     function nextSingleRhetoricQuestion() {
-      const prompt = takeFromQueue("rhetoric", rhetoricPrompts, singleRhetoricKey);
+      const prompt = takeFromQueue("rhetoric", rhetoricAllPrompts, allRhetoricKey);
       if (!prompt) {
         showNoRhetoricQuestion();
         return;
       }
       const poem = poemById(prompt.poemId);
-      state.rhetoric.current = { type: "single", answer: prompt.answer, prompt, poem };
+      state.rhetoric.current = { type: "all", answer: prompt.answers, prompt, poem };
       $("rhetoricCheckBtn").disabled = false;
-      $("rhetoricTitle").textContent = "修辞法";
+      $("rhetoricTitle").textContent = "一首から答える";
       $("rhetoricKindPill").textContent = `No.${poem.id}`;
       $("rhetoricQuestion").innerHTML = `
-        <div class="rhetoric-target">${escapeHtml(prompt.phrase)}</div>
         ${renderPoem(poem)}
+        <p class="small">この和歌に含まれる修辞法をすべて選ぶ。</p>
       `;
-      renderRhetoricChoices(["掛詞", "枕詞", "序詞", "折句"]);
+      renderRhetoricChoices(rhetoricTypes, true);
     }
 
     function buildMultiRhetoricPool() {
-      const types = ["掛詞", "枕詞", "序詞", "折句"];
-      return types.flatMap((targetType) => poems
+      return rhetoricTypes.flatMap((targetType) => poems
         .filter((poem) => poem.rhetoric.includes(targetType))
         .map((answerPoem) => ({ targetType, answerPoem }))
         .filter((item) => poems.filter((poem) => !poem.rhetoric.includes(item.targetType)).length >= 3));
@@ -1282,11 +1299,11 @@
       `);
     }
 
-    function renderRhetoricChoices(items) {
+    function renderRhetoricChoices(items, multiple = false) {
       $("rhetoricChoices").innerHTML = items.map((item) => `
         <button class="choice-btn" type="button" data-value="${escapeHtml(item)}">${escapeHtml(item)}</button>
       `).join("");
-      bindChoiceButtons();
+      bindChoiceButtons(multiple);
     }
 
     function renderPoemChoices(items) {
@@ -1301,13 +1318,40 @@
       bindChoiceButtons();
     }
 
-    function bindChoiceButtons() {
+    function rhetoricDetailsForPoem(poemId, types = null) {
+      const targetTypes = types ? new Set(types) : null;
+      return rhetoricPrompts.filter((prompt) => (
+        prompt.poemId === poemId && (!targetTypes || targetTypes.has(prompt.answer))
+      ));
+    }
+
+    function renderRhetoricEvidence(poemId, types = null) {
+      const details = rhetoricDetailsForPoem(poemId, types);
+      if (!details.length) return "";
+      return `
+        <ul class="compact-list">
+          ${details.map((detail) => `
+            <li><strong>${escapeHtml(detail.answer)}</strong>: ${escapeHtml(detail.phrase)}。${escapeHtml(detail.note)}</li>
+          `).join("")}
+        </ul>
+      `;
+    }
+
+    function bindChoiceButtons(multiple = false) {
       document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((button) => {
         button.addEventListener("click", () => {
           if (state.rhetoric.checked) return;
-          state.rhetoric.selected = button.dataset.value;
-          document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((item) => item.classList.remove("selected"));
-          button.classList.add("selected");
+          if (multiple) {
+            const selected = new Set(Array.isArray(state.rhetoric.selected) ? state.rhetoric.selected : []);
+            if (selected.has(button.dataset.value)) selected.delete(button.dataset.value);
+            else selected.add(button.dataset.value);
+            state.rhetoric.selected = [...selected];
+            button.classList.toggle("selected");
+          } else {
+            state.rhetoric.selected = button.dataset.value;
+            document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((item) => item.classList.remove("selected"));
+            button.classList.add("selected");
+          }
         });
       });
     }
@@ -1315,14 +1359,16 @@
     function checkRhetoricAnswer() {
       if (state.rhetoric.checked || !state.rhetoric.current) return;
       const current = state.rhetoric.current;
-      const passed = current.answer === state.rhetoric.selected;
+      const passed = current.type === "all"
+        ? sameSet(current.answer, Array.isArray(state.rhetoric.selected) ? state.rhetoric.selected : [])
+        : current.answer === state.rhetoric.selected;
       state.rhetoric.checked = true;
       state.rhetoric.total += 1;
       if (passed) state.rhetoric.correct += 1;
-      const key = current.type === "single" ? singleRhetoricKey(current.prompt) : multiRhetoricKey(current);
-      const label = current.type === "single"
-        ? `No.${current.poem.id} ${current.prompt.phrase}: ${current.answer}`
-        : `${current.targetType}: No.${current.answerPoem.id}`;
+      const key = current.type === "single" ? singleRhetoricKey(current.prompt) : current.type === "all" ? allRhetoricKey(current.prompt) : multiRhetoricKey(current);
+      const label = current.type === "multi"
+        ? `${current.targetType}: No.${current.answerPoem.id}`
+        : `No.${current.poem.id}: ${current.answer.join("・")}`;
       recordQuestion("rhetoric", key, passed, label);
       updateScores();
       $("rhetoricCheckBtn").disabled = true;
@@ -1330,8 +1376,12 @@
       saveState();
 
       document.querySelectorAll("#rhetoricChoices .choice-btn").forEach((button) => {
-        if (button.dataset.value === current.answer) button.classList.add("correct");
-        if (button.dataset.value === state.rhetoric.selected && !passed) button.classList.add("wrong");
+        const isCorrectChoice = current.type === "all" ? current.answer.includes(button.dataset.value) : button.dataset.value === current.answer;
+        const isSelected = current.type === "all"
+          ? (Array.isArray(state.rhetoric.selected) && state.rhetoric.selected.includes(button.dataset.value))
+          : button.dataset.value === state.rhetoric.selected;
+        if (isCorrectChoice) button.classList.add("correct");
+        if (isSelected && !isCorrectChoice && !passed) button.classList.add("wrong");
       });
 
       if (current.type === "single") {
@@ -1339,19 +1389,33 @@
           <p class="result-title">${passed ? "正解" : "確認"}</p>
           <p class="explain">${escapeHtml(current.prompt.phrase)}: ${escapeHtml(current.answer)}。${escapeHtml(current.prompt.note)}</p>
         `);
+      } else if (current.type === "all") {
+        showResult("rhetoricResult", passed, `
+          <p class="result-title">${passed ? "正解" : "確認"}</p>
+          <p class="explain">答え: ${escapeHtml(current.answer.join("・"))}</p>
+          <p class="explain">該当部分</p>
+          ${renderRhetoricEvidence(current.poem.id, current.answer)}
+        `);
       } else {
         showResult("rhetoricResult", passed, `
           <p class="result-title">${passed ? "正解" : "確認"}</p>
           <p class="explain">No.${current.answerPoem.id}: ${escapeHtml(current.answerPoem.text)}</p>
+          ${renderRhetoricEvidence(current.answerPoem.id, [current.targetType])}
         `);
       }
     }
 
+    function sameSet(expected, actual) {
+      if (expected.length !== actual.length) return false;
+      const actualSet = new Set(actual);
+      return expected.every((item) => actualSet.has(item));
+    }
+
     function allProgressItems() {
       const grammarItems = buildGrammarPool().map((item) => ({ key: grammarKey(item), poemId: item.poem.id }));
-      const singleItems = rhetoricPrompts.map((prompt) => ({ key: singleRhetoricKey(prompt), poemId: prompt.poemId }));
+      const allItems = rhetoricAllPrompts.map((prompt) => ({ key: allRhetoricKey(prompt), poemId: prompt.poemId }));
       const multiItems = buildMultiRhetoricPool().map((item) => ({ key: multiRhetoricKey(item), poemId: item.answerPoem.id }));
-      return [...grammarItems, ...singleItems, ...multiItems];
+      return [...grammarItems, ...allItems, ...multiItems];
     }
 
     function answeredKeys() {
